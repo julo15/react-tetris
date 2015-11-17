@@ -1,0 +1,78 @@
+.debug {
+    border: 1px dashed black;
+}
+body {
+    font-family: sans-serif;
+}
+
+#container {
+    text-align: center; /* for center aligning its inline-block children */
+}
+
+#game {
+    display: inline-block; /* make them not bigger than their content */
+}
+
+#game div {
+    float: left;
+    display: inline-block; /* make them not bigger than their content */
+}
+
+#game .controls {
+    clear: both;
+}
+
+.status {
+    width: 180px;
+}
+
+.status p {
+    border: 2px dashed blue;
+    color: blue;
+}
+
+.status button {
+    font-size: 125%;
+    border-radius: 4px;
+}
+
+#grid {
+    /*border-collapse: collapse;*/
+    border-spacing: 1px;
+}
+
+#grid tr {
+    padding: 0;
+}
+
+#grid td {
+    width: 24px;
+    height: 24px;
+    background: #ddd linear-gradient(hsla(0,0%,100%,.4), transparent);
+    border-radius: 4px;
+    padding: 0;
+    outline: 1px dashed #fff;
+    outline-offset: -.2em;
+}
+
+#grid td.red {
+    background-color: #711;
+}
+#grid td.green {
+    background-color: #253;
+}
+#grid td.blue {
+    background-color: #225;
+}
+#grid td.orange {
+    background-color: #853;
+}
+#grid td.yellow {
+    background-color: #770;
+}
+#grid td.purple {
+    background-color: #505;
+}
+#grid td.grey {
+    background-color: #666;
+}
