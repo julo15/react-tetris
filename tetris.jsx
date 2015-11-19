@@ -1,6 +1,6 @@
 var Block = React.createClass({
     render: function() {
-        var className = this.props.color;
+        var className = this.props.color + " " + this.props.size;
         return (
             <td className={className}></td>
         );
@@ -11,7 +11,7 @@ var Row = React.createClass({
     render: function() {
         var blocks = [];
         for (var col = 0; col < this.props.columnStates.length; col++) {
-            blocks.push(<Block color={this.props.columnStates[col]} />);
+            blocks.push(<Block color={this.props.columnStates[col]} size={this.props.size} />);
         }
         return (
             <tr>{blocks}</tr>
@@ -24,7 +24,7 @@ var Grid = React.createClass({
         var rows = [];
         for (var row = 0; row < this.props.numRows; row++) {
             var states = this.props.getBlockStatesForRow(row);
-            rows.push(<Row columnStates={states} />);
+            rows.push(<Row columnStates={states} size={this.props.size} />);
         }
         return (
             <div><table id="grid"><tbody>{rows}</tbody></table></div>
@@ -205,7 +205,7 @@ var Game = React.createClass({
                     that.rotatePiece();
                 }
             } else {
-                that.resetGame();
+                //that.resetGame();
             }
         });
         document.addEventListener('keyup', function(event) {
@@ -218,6 +218,12 @@ var Game = React.createClass({
                     that.clearInterval('drop');
                 } else if (event.keyCode == 38) {
                 }
+            }
+        });
+
+        socket.on('blocks', function(blockStates) {
+            if (that.props.viewer) {
+                that.setState({ blockStates: blockStates });
             }
         });
 
@@ -395,7 +401,7 @@ var Game = React.createClass({
     },
     movePiece: function(direction) {
         var currentPiece = this.state.currentPiece;
-        if (currentPiece.move(direction, this.state.blockStates)) {
+        if (currentPiece && currentPiece.move(direction, this.state.blockStates)) {
             this.validateCurrentPiece(currentPiece);
         }
     },
@@ -430,21 +436,45 @@ var Game = React.createClass({
         return Math.floor(Math.random() * max);
     },
     render: function() {
+        if (!this.props.viewer) {
+            var blockStates = [];
+            for (var row = 0; row < this.dimensions[0]; row++) {
+                blockStates.push(this.getBlockStatesForRow(row));
+            }
+            socket.emit('blocks', blockStates);
+        }
         return (
             <div id="game">
                 <Status
                     score={this.state.score}
                     getStatus={this.getStatus}
                     resetGame={this.resetGame} />
+                <br />
                 <Grid
                     numRows={this.dimensions[0]}
-                    getBlockStatesForRow={this.getBlockStatesForRow} />
-                <Controls
-                    movePiece={this.movePiece}
-                    rotatePiece={this.rotatePiece} />
+                    getBlockStatesForRow={this.getBlockStatesForRow} 
+                    size={this.props.size} />
             </div>
         );
+                //<Controls
+                    //movePiece={this.movePiece}
+                    //rotatePiece={this.rotatePiece} />
     }
 });
 
+var socket = io.connect('/');
+socket.on('connect', function() {
+    console.log('connected');
+});
+socket.on('disconnect', function() {
+    console.log('disconnected');
+});
+socket.on('heartbeat', function(num) {
+});
+//socket.on('blocks', function(blockStates) {
+    //console.log(blockStates);
+//});
+
 React.render(<Game />, document.getElementById('container'));
+
+React.render(<Game size='small' viewer={true} />, document.getElementById('container2'));

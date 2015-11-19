@@ -5,7 +5,9 @@ body {
     font-family: sans-serif;
 }
 
-#container {
+.container {
+    float: left;
+    margin: 10px;
     text-align: center; /* for center aligning its inline-block children */
 }
 
@@ -23,6 +25,8 @@ body {
 }
 
 .status {
+    display: block;
+    float: none;
     width: 180px;
 }
 
@@ -53,6 +57,13 @@ body {
     padding: 0;
     outline: 1px dashed #fff;
     outline-offset: -.2em;
+}
+
+#grid td.small {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    outline-offset: -.1em;
 }
 
 #grid td.red {
