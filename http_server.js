@@ -5,7 +5,7 @@ var fs = require('fs');
 // Basically, since we're using the in-browser JSX transformer from Facebook,
 // our JSX file needs to be served from an HTTP server to avoid cross-origin issues.
 
-var port = 8082;
+var port = 8083;
 console.log('Starting server on port ' + port);
 
 http.createServer(function(req, res) {

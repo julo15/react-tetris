@@ -24,28 +24,84 @@ body {
 
 .status {
     width: 180px;
+    margin: 10px;
 }
 
-.status p {
-    border: 2px dashed blue;
-    color: blue;
+.score {
+    color: #29e;
+    border-radius: 5px;
+    border: 1px solid #29e; /* match with color */
+    width: 100%;
 }
 
-.status button {
-    font-size: 125%;
-    border-radius: 4px;
+.score span {
+    padding: 4px 7px;
 }
 
-#grid {
+.score .score-title {
+    float: left;
+}
+
+.score .score-number {
+    float: right;
+}
+
+.control-button {
+    color: #888;
+    font-size: 100%; /* by default, buttons are smaller */
+    border-radius: 5px;
+    border: 1px solid #ccc; /* match this color with font color */
+    background: transparent linear-gradient(hsla(0,0%,100%,.4), transparent);
+}
+
+.control-button:hover {
+    cursor: pointer;
+    background-color: #eee;
+}
+
+.control-button:active {
+    background-color: #ddd;
+}
+
+.control-button:disabled {
+    color: #ccc;
+    border-color: #ccc;
+    background-color: transparent; /* match with .control-button background-color */
+    cursor: auto;
+}
+
+.control-button-green {
+    color: #0a9;
+    border-color: #0a9;
+}
+.control-button-red {
+    color: #e88;
+    border-color: #e88;
+}
+
+.game {
+    display: inline-block;
+}
+
+.game .grid {
+    float: left;
+}
+
+.game .status {
+    height: 100%;
+    background-color: #eee;
+}
+
+.grid-table {
     /*border-collapse: collapse;*/
     border-spacing: 1px;
 }
 
-#grid tr {
+.grid-table tr {
     padding: 0;
 }
 
-#grid td {
+.grid-table td {
     width: 24px;
     height: 24px;
     background: #ddd linear-gradient(hsla(0,0%,100%,.4), transparent);
@@ -55,24 +111,39 @@ body {
     outline-offset: -.2em;
 }
 
-#grid td.red {
+.small td {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    outline-offset: -.1em;
+}
+
+.grid-table td.red {
     background-color: #711;
 }
-#grid td.green {
+.grid-table td.green {
     background-color: #253;
 }
-#grid td.blue {
+.grid-table td.blue {
     background-color: #225;
 }
-#grid td.orange {
+.grid-table td.orange {
     background-color: #853;
 }
-#grid td.yellow {
+.grid-table td.yellow {
     background-color: #770;
 }
-#grid td.purple {
+.grid-table td.purple {
     background-color: #505;
 }
-#grid td.grey {
+.grid-table td.grey {
     background-color: #666;
+}
+
+.clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
 }

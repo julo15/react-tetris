@@ -27,19 +27,25 @@ var Grid = React.createClass({
             rows.push(<Row columnStates={states} />);
         }
         return (
-            <div><table id="grid"><tbody>{rows}</tbody></table></div>
+            <div><table className="grid-table"><tbody>{rows}</tbody></table></div>
         );
     }
 });
 
 var Status = React.createClass({
     render: function() {
+        var buttonClass = "control-button " + (this.props.playing ? "control-button-green" : "control-button-red");
         return (
             <div className="status">
-                <button onClick={this.props.resetGame}>
+                <button onClick={this.props.resetGame}
+                        className={buttonClass}>
                     {this.props.getStatus()}
                 </button>
-                <p>{this.props.score}</p>
+                <br />
+                <div className="score">
+                    <span className="score-title">Score:</span>
+                    <span className="score-number">{this.props.score}</span>
+                </div>
             </div>
         );
     }
@@ -205,7 +211,7 @@ var Game = React.createClass({
                     that.rotatePiece();
                 }
             } else {
-                that.resetGame();
+                //that.resetGame();
             }
         });
         document.addEventListener('keyup', function(event) {
@@ -434,16 +440,17 @@ var Game = React.createClass({
             <div id="game">
                 <Status
                     score={this.state.score}
+                    playing={this.state.playing}
                     getStatus={this.getStatus}
                     resetGame={this.resetGame} />
                 <Grid
                     numRows={this.dimensions[0]}
                     getBlockStatesForRow={this.getBlockStatesForRow} />
-                <Controls
-                    movePiece={this.movePiece}
-                    rotatePiece={this.rotatePiece} />
             </div>
         );
+                //<Controls
+                    //movePiece={this.movePiece}
+                    //rotatePiece={this.rotatePiece} />
     }
 });
 
