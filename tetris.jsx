@@ -403,6 +403,7 @@ var Game = React.createClass({
             blockStates: this.state.blockStates,
             score: this.state.score + points[rows.length - 1]
         });
+        this.props.onScoreUpdate(this.state.score);
     },
 
     validateCurrentPiece: function(currentPiece, reschedule) {
@@ -492,10 +493,13 @@ var Viewer = React.createClass({
     render: function() {
         return (
             <div className="viewer">
-                <Grid
-                    size="small"
-                    numRows={gridDimensions[0]}
-                    getBlockStatesForRow={this.getBlockStatesForRow} />
+                <div>
+                    <h6>{this.props.score}</h6>
+                    <Grid
+                        size="small"
+                        numRows={gridDimensions[0]}
+                        getBlockStatesForRow={this.getBlockStatesForRow} />
+                </div>
             </div>
         );
     }
@@ -505,7 +509,17 @@ var ViewerContainer = React.createClass({
     getInitialState: function() {
         var that = this;
         socket.on('blocks', function(data) {
-            that.state.players[data.userId] = { blockStates: data.blockStates };
+            if (that.state.players[data.userId] === undefined) {
+                that.state.players[data.userId] = {};
+            }
+            that.state.players[data.userId].blockStates = data.blockStates;
+            that.setState({ players: that.state.players });
+        });
+        socket.on('score', function(data) {
+            if (that.state.players[data.userId] === undefined) {
+                that.state.players[data.userId] = {};
+            }
+            that.state.players[data.userId].score = data.score;
             that.setState({ players: that.state.players });
         });
         socket.on('disconnect', function(userId) {
@@ -517,7 +531,7 @@ var ViewerContainer = React.createClass({
     render: function() {
         var viewers = [];
         for (var propName in this.state.players) {
-            viewers.push(<Viewer blockStates={this.state.players[propName].blockStates} />);
+            viewers.push(<Viewer blockStates={this.state.players[propName].blockStates} score={this.state.players[propName].score} />);
         }
         return (
             <div className="viewercontainer">{viewers}</div>
@@ -546,11 +560,18 @@ function onGameBlockUpdate(blockStates) {
     }
 }
 
+function onScoreUpdate(score) {
+    if (userId !== undefined) {
+        socket.emit('score', score);
+    }
+}
+
 var MainContainer = React.createClass({
     render: function() {
         return (
             <div>
-                <Game onGameBlockUpdate={onGameBlockUpdate} />
+                <Game onGameBlockUpdate={onGameBlockUpdate}
+                      onScoreUpdate={onScoreUpdate} />
                 <ViewerContainer />
             </div>
         );

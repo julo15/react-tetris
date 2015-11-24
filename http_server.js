@@ -60,13 +60,21 @@ function handleIO(socket) {
             name: name
         });
     });
+
+    socket.on('score', function(score) {
+        console.log('score received from ' + userId + ' (' + score + ')');
+        socket.broadcast.emit('score', {
+            userId: userId,
+            score: score
+        });
+    });
 }
 
 function generateUserId() {
     return Math.floor(Math.random() * 1000);
 }
 
-var port = 8083;
+var port = 8087;
 console.log('Starting server on port ' + port);
 
 var http = require('http');
