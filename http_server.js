@@ -38,17 +38,32 @@ function handleIO(socket) {
         socket.emit('heartbeat', Math.random());
     }, 1000);
 
+    var userId = generateUserId();
+    socket.emit('id', userId);
+
     function disconnect() {
         console.log('client disconnected');
         clearInterval(interval);
+        socket.broadcast.emit('disconnect', userId);
     }
 
     console.log('client connected');
     socket.on('disconnect', disconnect);
 
-    socket.on('blocks', function(blockStates) {
-        socket.broadcast.emit('blocks', blockStates);
+    socket.on('blocks', function(data) {
+        socket.broadcast.emit('blocks', data);
     });
+
+    socket.on('name', function(name) {
+        socket.broadcast.emit('name', {
+            userId: userId,
+            name: name
+        });
+    });
+}
+
+function generateUserId() {
+    return Math.floor(Math.random() * 1000);
 }
 
 var port = 8083;

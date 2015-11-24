@@ -22,6 +22,11 @@ body {
     clear: both;
 }
 
+.viewercontainer > div {
+    display: inline-block;
+    margin: 5px;
+}
+
 .status {
     width: 180px;
     margin: 10px;
@@ -102,8 +107,8 @@ body {
 }
 
 .grid-table td {
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
     background: #ddd linear-gradient(hsla(0,0%,100%,.4), transparent);
     border-radius: 4px;
     padding: 0;
@@ -112,8 +117,8 @@ body {
 }
 
 .small td {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 2px;
     outline-offset: -.1em;
 }
