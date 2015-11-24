@@ -51,12 +51,11 @@ function handleIO(socket) {
     });
 }
 
-var host = 'localhost';
-var port = 8082;
+var port = 8083;
 console.log('Starting server on port ' + port);
 
 var http = require('http');
-var httpServer = http.createServer(handleHTTP).listen(port, host);
+var httpServer = http.createServer(handleHTTP).listen(port);
 
 var io = require('socket.io').listen(httpServer);
 io.on('connection', handleIO);

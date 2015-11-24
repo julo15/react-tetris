@@ -1,10 +1,30 @@
 // Some globals
 var gridDimensions = [20, 10]; // rows, columns
 
+var BlockState = {
+    empty: 0,
+    red: 1,
+    green: 2,
+    blue: 3,
+    orange: 4,
+    yellow: 5,
+    purple: 6,
+    grey: 7
+};
+
+function blockStateClassFromEnum(val) {
+    for (var propName in BlockState) {
+        if (BlockState[propName] === val) {
+            return propName;
+        }
+    }
+    return "";
+}
+
 function generateRowBlockStates() {
     var colStates = [];
     for (var col = 0; col < gridDimensions[1]; col++) {
-        colStates.push('empty');
+        colStates.push(BlockState.empty);
     }
     return colStates;
 }
@@ -35,7 +55,7 @@ var Row = React.createClass({
     render: function() {
         var blocks = [];
         for (var col = 0; col < this.props.columnStates.length; col++) {
-            blocks.push(<Block color={this.props.columnStates[col]} />);
+            blocks.push(<Block color={blockStateClassFromEnum(this.props.columnStates[col])} />);
         }
         return (
             <tr>{blocks}</tr>
@@ -160,7 +180,7 @@ Piece.prototype.collides = function(blockStates) {
     var cols = blockStates[0].length;
     for (var i = 0; i < this.points.length; i++) {
         var coords = this.getPointCoordinates(i);
-        if (!this.pointOnGrid(coords[0], coords[1], rows, cols) || (blockStates[coords[0]][coords[1]] !== 'empty')) {
+        if (!this.pointOnGrid(coords[0], coords[1], rows, cols) || (blockStates[coords[0]][coords[1]] !== BlockState.empty)) {
             return true;
         }
     }
@@ -193,7 +213,7 @@ Piece.prototype.landed = function(blockStates) {
         }
         var col = this.col + this.points[i][1];
         if (this.pointOnGrid(row, col, numRows, numCols)) {
-            if (blockStates[row + 1][col] != 'empty') {
+            if (blockStates[row + 1][col] !== BlockState.empty) {
                 return true; // just above an occupied spot
             }
         }
@@ -269,37 +289,37 @@ var Game = React.createClass({
         var pieces = [
             {
                 // L
-                color: 'green',
+                color: BlockState.green,
                 points: [ [0,-1], [-1,-1], [-1,0], [-1,1] ]
             },
             {
                 // J
-                color: 'yellow',
+                color: BlockState.yellow,
                 points: [ [0,-1], [-1,-1], [0,0], [0,1] ]
             },
             {
                 // box
-                color: 'red',
+                color: BlockState.red,
                 points: [ [0,0], [-1,0], [-1,-1], [0,-1] ]
             },
             {
                 // I
-                color: 'orange',
+                color: BlockState.orange,
                 points: [ [-2,0], [-1,0], [0,0], [1,0] ]
             },
             {
                 // T
-                color: 'blue',
+                color: BlockState.blue,
                 points: [ [0,0], [-1,0], [-1,1], [-1,-1] ]
             },
             {
                 // S
-                color: 'purple',
+                color: BlockState.purple,
                 points: [ [0,0], [-1,0], [-1,1], [0,-1] ]
             },
             {
                 // Z
-                color: 'grey',
+                color: BlockState.grey,
                 points: [ [0,0], [-1,0], [-1,-1], [0,1] ]
             }
         ];
@@ -328,9 +348,10 @@ var Game = React.createClass({
     // Assumption is that the currentPiece exists and is in a valid spot
     doDrop: function() {
         var currentPiece = this.state.currentPiece;
+        if (!currentPiece) return;
         
         // Check if the piece landed previously
-        if (currentPiece.landed(this.state.blockStates)) {
+        if (currentPiece && currentPiece.landed(this.state.blockStates)) {
             // Merge the piece into the blockStates
             currentPiece.merge(this.state.blockStates);
             this.setState({blockStates: this.state.blockStates});
@@ -341,7 +362,7 @@ var Game = React.createClass({
                 var line = true;
                 var rowBlockStates = this.state.blockStates[i];
                 for (var index in rowBlockStates) {
-                    if (rowBlockStates[index] === 'empty') {
+                    if (rowBlockStates[index] === BlockState.empty) {
                         line = false;
                         break;
                     }
@@ -407,7 +428,7 @@ var Game = React.createClass({
     },
     movePiece: function(direction) {
         var currentPiece = this.state.currentPiece;
-        if (currentPiece.move(direction, this.state.blockStates)) {
+        if (currentPiece && currentPiece.move(direction, this.state.blockStates)) {
             this.validateCurrentPiece(currentPiece);
         }
     },
