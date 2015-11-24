@@ -1,14 +1,10 @@
-var http = require('http');
 var fs = require('fs');
 
 // This is a simple node HTTP server to serve up files from this directory.
 // Basically, since we're using the in-browser JSX transformer from Facebook,
 // our JSX file needs to be served from an HTTP server to avoid cross-origin issues.
 
-var port = 8083;
-console.log('Starting server on port ' + port);
-
-http.createServer(function(req, res) {
+function handleHTTP(req, res) {
     var filePath = '.' + req.url;
     console.log('Retrieving ' + filePath);
     fs.readFile(filePath, function(err, file) {
@@ -35,4 +31,43 @@ http.createServer(function(req, res) {
         }
         res.end();
     });
-}).listen(port);
+}
+
+function handleIO(socket) {
+    var interval = setInterval(function() {
+        socket.emit('heartbeat', Math.random());
+    }, 1000);
+
+    function disconnect() {
+        console.log('client disconnected');
+        clearInterval(interval);
+    }
+
+    console.log('client connected');
+    socket.on('disconnect', disconnect);
+
+    socket.on('blocks', function(blockStates) {
+        socket.broadcast.emit('blocks', blockStates);
+    });
+}
+
+var host = 'localhost';
+var port = 8082;
+console.log('Starting server on port ' + port);
+
+var http = require('http');
+var httpServer = http.createServer(handleHTTP).listen(port, host);
+
+var io = require('socket.io').listen(httpServer);
+io.on('connection', handleIO);
+
+io.configure(function() {
+    io.enable('browser client minification');
+    io.enable('browser client etag');
+    io.set('log level', 1);
+    io.set('transports', [
+        'websocket',
+        'xhr-polling',
+        'jsonp-polling'
+    ]);
+});
