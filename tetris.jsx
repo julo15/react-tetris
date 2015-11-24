@@ -328,6 +328,7 @@ var Game = React.createClass({
     // Assumption is that the currentPiece exists and is in a valid spot
     doDrop: function() {
         var currentPiece = this.state.currentPiece;
+        if (!currentPiece) return;
         
         // Check if the piece landed previously
         if (currentPiece.landed(this.state.blockStates)) {
@@ -407,7 +408,7 @@ var Game = React.createClass({
     },
     movePiece: function(direction) {
         var currentPiece = this.state.currentPiece;
-        if (currentPiece.move(direction, this.state.blockStates)) {
+        if (currentPiece && currentPiece.move(direction, this.state.blockStates)) {
             this.validateCurrentPiece(currentPiece);
         }
     },
@@ -442,6 +443,13 @@ var Game = React.createClass({
         return Math.floor(Math.random() * max);
     },
     render: function() {
+        if (this.props.onGameBlockUpdate) {
+            var blockStates = [];
+            for (var row = 0; row < gridDimensions[0]; row++) {
+                blockStates.push(this.getBlockStatesForRow(row));
+            }
+            this.props.onGameBlockUpdate(blockStates);
+        }
         return (
             <div id="game">
                 <Status
@@ -458,15 +466,12 @@ var Game = React.createClass({
 });
 
 var Viewer = React.createClass({
-    getInitialState: function() {
-        return {blockStates: getInitialBlockStates()};
-    },
     getBlockStatesForRow: function(row) {
-        return this.state.blockStates[row];
+        return this.props.blockStates[row];
     },
     render: function() {
         return (
-            <div class="viewer">
+            <div className="viewer">
                 <Grid
                     size="small"
                     numRows={gridDimensions[0]}
@@ -476,4 +481,60 @@ var Viewer = React.createClass({
     }
 });
 
-React.render(<Game />, document.getElementById('container'));
+var ViewerContainer = React.createClass({
+    getInitialState: function() {
+        var that = this;
+        socket.on('blocks', function(data) {
+            that.state.players[data.userId] = { blockStates: data.blockStates };
+            that.setState({ players: that.state.players });
+        });
+        socket.on('disconnect', function(userId) {
+            delete that.state.players[userId];
+            that.setState({ players: that.state.players });
+        });
+        return { players: {} };
+    },
+    render: function() {
+        var viewers = [];
+        for (var propName in this.state.players) {
+            viewers.push(<Viewer blockStates={this.state.players[propName].blockStates} />);
+        }
+        return (
+            <div className="viewercontainer">{viewers}</div>
+        );
+    }
+});
+
+var userId;
+var socket = io.connect('/');
+socket.on('connect', function() {
+    console.log('connected');
+});
+socket.on('disconnect', function() {
+    console.log('disconnected');
+});
+socket.on('id', function(id) {
+    userId = id;
+});
+
+function onGameBlockUpdate(blockStates) {
+    if (userId !== undefined) {
+        socket.emit('blocks', {
+            userId: userId,
+            blockStates: blockStates
+        });
+    }
+}
+
+var MainContainer = React.createClass({
+    render: function() {
+        return (
+            <div>
+                <Game onGameBlockUpdate={onGameBlockUpdate} />
+                <ViewerContainer />
+            </div>
+        );
+    }
+});
+
+React.render(<MainContainer />, document.getElementById('container'));
