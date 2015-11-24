@@ -1,3 +1,27 @@
+// Some globals
+var gridDimensions = [20, 10]; // rows, columns
+
+function generateRowBlockStates() {
+    var colStates = [];
+    for (var col = 0; col < gridDimensions[1]; col++) {
+        colStates.push('empty');
+    }
+    return colStates;
+}
+
+function getInitialBlockStates() {
+    // blockStates is a 2D array representing the state of each square on the game grid.
+    // In this app, we use a matrix-style coordinate system (row, column) that is (obviously)
+    // zero-based.
+    // The state of each block is the CSS class we should use to style the block.
+    // We utilize one special state, 'empty' to represent that no block is occupying the point.
+    var rowStates = [];
+    for (var row = 0; row < gridDimensions[0]; row++) {
+        rowStates.push(generateRowBlockStates());
+    }
+    return rowStates;
+}
+
 var Block = React.createClass({
     render: function() {
         var className = this.props.color;
@@ -26,8 +50,9 @@ var Grid = React.createClass({
             var states = this.props.getBlockStatesForRow(row);
             rows.push(<Row columnStates={states} />);
         }
+        var tableClassName = "grid-table " + this.props.size;
         return (
-            <div><table className="grid-table"><tbody>{rows}</tbody></table></div>
+            <div><table className={tableClassName}><tbody>{rows}</tbody></table></div>
         );
     }
 });
@@ -231,7 +256,7 @@ var Game = React.createClass({
 
     },
     createInitialState: function() {
-        var blockStates = this.getInitialBlockStates();
+        var blockStates = getInitialBlockStates();
         return {
             blockStates: blockStates,
             currentPiece: null,
@@ -299,7 +324,6 @@ var Game = React.createClass({
             func();
         }, delay);
     },
-    dimensions: [20, 10], // rows, columns
 
     // Assumption is that the currentPiece exists and is in a valid spot
     doDrop: function() {
@@ -341,14 +365,14 @@ var Game = React.createClass({
         }
     },
     doNewPiece: function() {
-        var currentPiece = this.createNewPiece(2, this.getRandomInt(this.dimensions[1] - 4) + 2);
+        var currentPiece = this.createNewPiece(2, this.getRandomInt(gridDimensions[1] - 4) + 2);
         this.validateCurrentPiece(currentPiece, true /* reschedule */);
     },
     doLine: function(rows) {
         rows.sort();
         for (var i = 0; i < rows.length; i++) {
             this.state.blockStates.splice(rows[i], 1);
-            this.state.blockStates.unshift(this.generateRowBlockStates());
+            this.state.blockStates.unshift(generateRowBlockStates());
         }
 
         var points = [ 40, 100, 300, 1200 ];
@@ -359,6 +383,7 @@ var Game = React.createClass({
             score: this.state.score + points[rows.length - 1]
         });
     },
+
     validateCurrentPiece: function(currentPiece, reschedule) {
         // Check for collision
         if (currentPiece.collides(this.state.blockStates)) {
@@ -367,25 +392,6 @@ var Game = React.createClass({
             this.scheduleNextTick(this.doDrop, this.state.moveDelay);
         }
         this.setState({currentPiece: currentPiece});
-    },
-    generateRowBlockStates: function() {
-        var colStates = [];
-        for (var col = 0; col < this.dimensions[1]; col++) {
-            colStates.push('empty');
-        }
-        return colStates;
-    },
-    getInitialBlockStates: function() {
-        // blockStates is a 2D array representing the state of each square on the game grid.
-        // In this app, we use a matrix-style coordinate system (row, column) that is (obviously)
-        // zero-based.
-        // The state of each block is the CSS class we should use to style the block.
-        // We utilize one special state, 'empty' to represent that no block is occupying the point.
-        var rowStates = [];
-        for (var row = 0; row < this.dimensions[0]; row++) {
-            rowStates.push(this.generateRowBlockStates());
-        }
-        return rowStates;
     },
     getBlockStatesForRow: function(row) {
         // Important function that calculates the final state of each block in a row.
@@ -444,13 +450,29 @@ var Game = React.createClass({
                     getStatus={this.getStatus}
                     resetGame={this.resetGame} />
                 <Grid
-                    numRows={this.dimensions[0]}
+                    numRows={gridDimensions[0]}
                     getBlockStatesForRow={this.getBlockStatesForRow} />
             </div>
         );
-                //<Controls
-                    //movePiece={this.movePiece}
-                    //rotatePiece={this.rotatePiece} />
+    }
+});
+
+var Viewer = React.createClass({
+    getInitialState: function() {
+        return {blockStates: getInitialBlockStates()};
+    },
+    getBlockStatesForRow: function(row) {
+        return this.state.blockStates[row];
+    },
+    render: function() {
+        return (
+            <div class="viewer">
+                <Grid
+                    size="small"
+                    numRows={gridDimensions[0]}
+                    getBlockStatesForRow={this.getBlockStatesForRow} />
+            </div>
+        );
     }
 });
 
