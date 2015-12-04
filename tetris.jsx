@@ -410,6 +410,7 @@ var Game = React.createClass({
         // Check for collision
         if (currentPiece.collides(this.state.blockStates)) {
             this.setState({ playing: false });
+            this.clearInterval('drop');
         } else if (reschedule === true) {
             this.scheduleNextTick(this.doDrop, this.state.moveDelay);
         }
