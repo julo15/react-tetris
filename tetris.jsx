@@ -322,6 +322,8 @@ var Game = React.createClass({
                     that.setInterval('drop', that.doDrop, 50);
                 } else if (event.keyCode == 38) {
                     that.rotatePiece();
+                } else if (event.keyCode == 16) {
+                    that.dropPiece();
                 }
             } else {
                 //that.resetGame();
@@ -377,7 +379,8 @@ var Game = React.createClass({
     },
 
     // Assumption is that the currentPiece exists and is in a valid spot
-    doDrop: function() {
+    doDropInternal: function(scheduleNextDrop) {
+        var somethingScheduled = false;
         var currentPiece = this.state.currentPiece;
         if (!currentPiece) return;
         
@@ -408,13 +411,19 @@ var Game = React.createClass({
             } else {
                 this.scheduleNextTick(this.doNextPiece, this.state.moveDelay);
             }
+            somethingScheduled = true;
             currentPiece = null;
             this.setState({currentPiece: currentPiece});
         } else {
             // Piece hasn't landed, so drop it.
             currentPiece.row++;
-            this.validateCurrentPiece(currentPiece, true /* reschedule */);
+            this.validateCurrentPiece(currentPiece, scheduleNextDrop /* reschedule */);
+            somethingScheduled = scheduleNextDrop;
         }
+        return somethingScheduled;
+    },
+    doDrop: function() {
+        this.doDropInternal(true /* scheduleNextDrop */);
     },
     doNextPiece: function() {
         var currentPiece = this.createNextPiece(2, this.getRandomInt(gridDimensions[1] - 4) + 2);
@@ -471,6 +480,12 @@ var Game = React.createClass({
         var currentPiece = this.state.currentPiece;
         if (currentPiece.rotate(this.state.blockStates)) {
             this.validateCurrentPiece(currentPiece);
+        }
+    },
+    dropPiece: function() {
+        var currentPiece = this.state.currentPiece;
+        while ((currentPiece !== null) && !this.doDropInternal(false /* scheduleNextDrop */)) {
+            var currentPiece = this.state.currentPiece;
         }
     },
     getStatus: function() {
