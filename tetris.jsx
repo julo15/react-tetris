@@ -529,13 +529,10 @@ var Viewer = React.createClass({
     render: function() {
         return (
             <div className="viewer">
-                <div>
-                    <h6>{this.props.score}</h6>
-                    <Grid
-                        size="small"
-                        numRows={gridDimensions[0]}
-                        getBlockStatesForRow={this.getBlockStatesForRow} />
-                </div>
+                <Grid
+                    size="small"
+                    numRows={gridDimensions[0]}
+                    getBlockStatesForRow={this.getBlockStatesForRow} />
             </div>
         );
     }
