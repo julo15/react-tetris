@@ -1,5 +1,6 @@
 // Some globals
 var gridDimensions = [20, 10]; // rows, columns
+var previewerDimentions = [4, 4]; // rows, columns
 
 var BlockState = {
     empty: 0,
@@ -11,6 +12,44 @@ var BlockState = {
     purple: 6,
     grey: 7
 };
+
+var pieceTypes = [
+    {
+        // L
+        color: BlockState.green,
+        points: [ [0,-1], [-1,-1], [-1,0], [-1,1] ]
+    },
+    {
+        // J
+        color: BlockState.yellow,
+        points: [ [0,-1], [-1,-1], [0,0], [0,1] ]
+    },
+    {
+        // box
+        color: BlockState.red,
+        points: [ [0,0], [-1,0], [-1,-1], [0,-1] ]
+    },
+    {
+        // I
+        color: BlockState.orange,
+        points: [ [-2,0], [-1,0], [0,0], [1,0] ]
+    },
+    {
+        // T
+        color: BlockState.blue,
+        points: [ [0,0], [-1,0], [-1,1], [-1,-1] ]
+    },
+    {
+        // S
+        color: BlockState.purple,
+        points: [ [0,0], [-1,0], [-1,1], [0,-1] ]
+    },
+    {
+        // Z
+        color: BlockState.grey,
+        points: [ [0,0], [-1,0], [-1,-1], [0,1] ]
+    }
+];
 
 function blockStateClassFromEnum(val) {
     for (var propName in BlockState) {
@@ -77,6 +116,34 @@ var Grid = React.createClass({
     }
 });
 
+var PiecePreviewer = React.createClass({
+    getBlockStatesForRow: function(row) {
+        var rowBlockStates = [];
+        for (var col = 0; col < previewerDimentions[1]; col++) {
+            rowBlockStates[col] = BlockState.empty;
+        }
+
+        var index = this.props.pieceIndex;
+        var piece = new Piece(0, 0, pieceTypes[index].color, pieceTypes[index].points);
+
+        for (var pointIndex = 0; pointIndex < piece.points.length; pointIndex++) {
+            var point = piece.points[pointIndex];
+            if (point[0] + 2 == row) {
+                rowBlockStates[point[1] + 2] = piece.color;
+            }
+        }
+
+       return rowBlockStates;
+    },
+    render: function() {
+        return (
+            <Grid
+                numRows={previewerDimentions[0]}
+                getBlockStatesForRow={this.getBlockStatesForRow} />
+        )
+    }
+});
+
 var Status = React.createClass({
     render: function() {
         var buttonClass = "control-button " + (this.props.playing ? "control-button-green" : "control-button-red");
@@ -91,6 +158,7 @@ var Status = React.createClass({
                     <span className="score-title">Score:</span>
                     <span className="score-number">{this.props.score}</span>
                 </div>
+                <PiecePreviewer pieceIndex={this.props.nextPieceIndex} />
             </div>
         );
     }
@@ -280,52 +348,15 @@ var Game = React.createClass({
         return {
             blockStates: blockStates,
             currentPiece: null,
+            nextPieceIndex: this.getRandomInt(pieceTypes.length),
             moveDelay: 400,
             playing: false,
             score: 0
         };
     },
-    createNewPiece: function(row, col) {
-        var pieces = [
-            {
-                // L
-                color: BlockState.green,
-                points: [ [0,-1], [-1,-1], [-1,0], [-1,1] ]
-            },
-            {
-                // J
-                color: BlockState.yellow,
-                points: [ [0,-1], [-1,-1], [0,0], [0,1] ]
-            },
-            {
-                // box
-                color: BlockState.red,
-                points: [ [0,0], [-1,0], [-1,-1], [0,-1] ]
-            },
-            {
-                // I
-                color: BlockState.orange,
-                points: [ [-2,0], [-1,0], [0,0], [1,0] ]
-            },
-            {
-                // T
-                color: BlockState.blue,
-                points: [ [0,0], [-1,0], [-1,1], [-1,-1] ]
-            },
-            {
-                // S
-                color: BlockState.purple,
-                points: [ [0,0], [-1,0], [-1,1], [0,-1] ]
-            },
-            {
-                // Z
-                color: BlockState.grey,
-                points: [ [0,0], [-1,0], [-1,-1], [0,1] ]
-            }
-        ];
-
-        var index = this.getRandomInt(pieces.length);
-        var piece = new Piece(row, col, pieces[index].color, pieces[index].points);
+    createNextPiece: function(row, col) {
+        var index = this.state.nextPieceIndex;
+        var piece = new Piece(row, col, pieceTypes[index].color, pieceTypes[index].points);
         return piece;
     },
     intervals: {},
@@ -375,7 +406,7 @@ var Game = React.createClass({
             if (lineRows.length) {
                 this.scheduleNextTick(this.doLine.bind(this, lineRows), this.state.moveDelay * 0);
             } else {
-                this.scheduleNextTick(this.doNewPiece, this.state.moveDelay);
+                this.scheduleNextTick(this.doNextPiece, this.state.moveDelay);
             }
             currentPiece = null;
             this.setState({currentPiece: currentPiece});
@@ -385,8 +416,10 @@ var Game = React.createClass({
             this.validateCurrentPiece(currentPiece, true /* reschedule */);
         }
     },
-    doNewPiece: function() {
-        var currentPiece = this.createNewPiece(2, this.getRandomInt(gridDimensions[1] - 4) + 2);
+    doNextPiece: function() {
+        var currentPiece = this.createNextPiece(2, this.getRandomInt(gridDimensions[1] - 4) + 2);
+        var nextPieceIndex = this.getRandomInt(pieceTypes.length);
+        this.setState({nextPieceIndex: nextPieceIndex});
         this.validateCurrentPiece(currentPiece, true /* reschedule */);
     },
     doLine: function(rows) {
@@ -398,7 +431,7 @@ var Game = React.createClass({
 
         var points = [ 40, 100, 300, 1200 ];
 
-        this.scheduleNextTick(this.doNewPiece, this.state.moveDelay);
+        this.scheduleNextTick(this.doNextPiece, this.state.moveDelay);
         this.setState({
             blockStates: this.state.blockStates,
             score: this.state.score + points[rows.length - 1]
@@ -453,7 +486,8 @@ var Game = React.createClass({
     },
     resetGame: function() {
         var state = this.createInitialState();
-        state.currentPiece = this.createNewPiece(2, 2);
+        state.currentPiece = this.createNextPiece(2, 2);
+        state.nextPieceIndex = this.getRandomInt(pieceTypes.length);
         this.setState(state);
         this.resumeGame();
     },
@@ -477,6 +511,7 @@ var Game = React.createClass({
                 <Status
                     score={this.state.score}
                     playing={this.state.playing}
+                    nextPieceIndex={this.state.nextPieceIndex}
                     getStatus={this.getStatus}
                     resetGame={this.resetGame} />
                 <Grid
